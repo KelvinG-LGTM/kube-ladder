@@ -1,11 +1,12 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: nginx
+  name: nginx-kel-deployment
+  namespace: tutorial
   labels:
     app: nginx
 spec:
-  replicas: 1
+  replicas: 3 
   selector:
     matchLabels:
       app: nginx
@@ -13,9 +14,10 @@ spec:
     metadata:
       labels:
         app: nginx
+        lalala: lololo
     spec:
       containers:
       - name: nginx
-        image: cargo.caicloud.io/caicloud/nginx:1.9.7
+        image: nginx:latest
         ports:
         - containerPort: 80

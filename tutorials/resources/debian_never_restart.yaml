@@ -8,7 +8,8 @@ spec:
   restartPolicy: Never
   containers:
     - name: debian
-      image: cargo.caicloud.io/caicloud/debian:jessie
+      image: debian:latest
+      command: [ "tail", "-f", "/dev/null" ]
       resources:
         requests:
           cpu: "0.1"

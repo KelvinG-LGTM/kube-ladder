@@ -18,76 +18,103 @@
 
 ## 安装 kubectl
 
-Kubectl 是 Kubernetes 自带的命令行工具，可以用它直接操作 Kubernetes。
+Kubectl 是 Kubernetes 自带的命令行工具，可以用它直接操作 Kubernetes。当前最新版本支持 Kubernetes v1.33。
 
 macOS，执行：
 
 ```bash
-# using brew https://brew.sh/
+# 使用 Homebrew（推荐）https://brew.sh/
+brew install kubectl
+# 或者使用完整包名
 brew install kubernetes-cli
+```
+
+验证安装：
+
+```bash
+kubectl version --client
 ```
 
 Linux，执行：
 
 ```bash
-curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
- && chmod +x kubectl && sudo mv kubectl /usr/local/bin/
+# 获取最新稳定版本
+curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+chmod +x kubectl && sudo mv kubectl /usr/local/bin/
 ```
 
 Windows，执行：
 
 ```bash
-curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.15.0/bin/windows/amd64/kubectl.exe
+# 获取最新稳定版本
+curl.exe -LO "https://dl.k8s.io/release/$(curl.exe -L -s https://dl.k8s.io/release/stable.txt)/bin/windows/amd64/kubectl.exe"
 ```
 
 ## 使用 Minikube 部署 Kubernetes
 
 [Minikube](https://github.com/kubernetes/minikube) 用于本地部署 kubernetes 集群，支持 macOS，Linux，和 Windows。
 
-**注意**：**科学上网**是必须的，否则 minikube iso 镜像文件，gcr.io 的 Docker 镜像等将无法下载。
+**系统要求**：
+- 建议预留至少 60-80 GB 可用磁盘空间（官方最低要求 20 GB）
+- Docker Desktop（个人使用免费）或其他容器运行时
 
 ### 安装
 
-**下载依赖**：
+**macOS**：
 
-* *macOS 10.12 (Sierra)*
-  * 要求安装 hypervisor，比如 [hyperkit](https://github.com/kubernetes/minikube/blob/master/docs/drivers.md#hyperkit-driver) （推荐）或 [VirtualBox](https://www.virtualbox.org/wiki/Downloads)
-  * 使用 [brew](https://brew.sh/) ： `brew cask install minikube`
-  * 或者使用 curl： `curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-darwin-amd64 && sudo install minikube-darwin-amd64 /usr/local/bin/minikube`
+```bash
+# 使用 Homebrew（推荐）
+brew install minikube
 
-* *Windows 10*
-  * 要求安装 hypervisor，比如 [VirtualBox](https://www.virtualbox.org/wiki/Downloads) （推荐）或 [HyperV](https://docs.docker.com/machine/drivers/hyper-v/)
-  * BIOS 中必须开启 VT-x/AMD-v virtualization
-  * 使用 [chocolatey](https://chocolatey.org/) `choco install minikube`
-  * 或者通过链接下载： Download and run the [installer](https://storage.googleapis.com/minikube/releases/latest/minikube-installer.exe)
+# Intel Mac 手动安装
+curl -LO https://github.com/kubernetes/minikube/releases/latest/download/minikube-darwin-amd64
+sudo install minikube-darwin-amd64 /usr/local/bin/minikube
 
-* *Linux*
-  * 要求安装 [kvm2 driver](https://github.com/kubernetes/minikube/blob/master/docs/drivers.md#kvm2-driver) （推荐）或 [VirtualBox](https://www.virtualbox.org/wiki/Downloads)
-  * BIOS 中必须开启 VT-x/AMD-v virtualization
-  * 使用 curl： `curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64 && sudo install minikube-linux-amd64 /usr/local/bin/minikube`
+# Apple Silicon (M1/M2) Mac 手动安装
+curl -LO https://github.com/kubernetes/minikube/releases/latest/download/minikube-darwin-arm64
+sudo install minikube-darwin-arm64 /usr/local/bin/minikube
+```
 
-**确认你的 minikube 至少是 v1.2.0**：
+**Linux**：
+
+```bash
+# 使用 curl
+curl -LO https://github.com/kubernetes/minikube/releases/latest/download/minikube-linux-amd64
+sudo install minikube-linux-amd64 /usr/local/bin/minikube
+```
+
+**Windows**：
+
+```bash
+# 使用 chocolatey
+choco install minikube
+
+# 或下载安装程序
+# 访问 https://github.com/kubernetes/minikube/releases/latest 下载 minikube-installer.exe
+```
+
+**确认 minikube 版本**：
 
 ```sh
 $ minikube version
-minikube version: v1.2.0
+minikube version: v1.34.0
+commit: cfd61e485f923ba79b3ba3d9ed4f7bed5df8da9d
 ```
 
 **启动 Minikube**：
 
-**注意**： 这里我们使用的是 VirtualBox，如果你用的其它，可能会需要另外的配置，请按照上一节 👆 的链接查找。
-
 ```sh
 $ minikube start
-😄  minikube v1.2.0 on darwin (amd64)
-🔥  Creating virtualbox VM (CPUs=2, Memory=2048MB, Disk=20000MB) ...
-🐳  Configuring environment for Kubernetes v1.15.0 on Docker 18.09.6
-💾  Downloading kubeadm v1.15.0
-💾  Downloading kubelet v1.15.0
-🚜  Pulling images ...
-🚀  Launching Kubernetes ...
-⌛  Verifying: apiserver proxy etcd scheduler controller dns
-🏄  Done! kubectl is now configured to use "minikube"
+😄  minikube v1.34.0 on darwin (amd64)
+✨  Using the docker driver based on existing profile
+👍  Starting "minikube" primary control-plane node in "minikube" cluster
+🚜  Pulling base image ...
+🔄  Restarting existing docker container for "minikube" ...
+🐳  Preparing Kubernetes v1.33.3 on Docker 25.0.3 ...
+🔎  Verifying Kubernetes components...
+    ▪ Using image gcr.io/k8s-minikube/storage-provisioner:v5
+🌟  Enabled addons: default-storageclass, storage-provisioner
+🏄  Done! kubectl is now configured to use "minikube" cluster and "default" namespace by default
 ```
 
 ### 验证
@@ -96,37 +123,63 @@ $ minikube start
 
 ```sh
 $ kubectl get nodes
-NAME       STATUS   ROLES    AGE    VERSION
-minikube   Ready    master   4m5s   v1.15.0
+NAME       STATUS   ROLES           AGE    VERSION
+minikube   Ready    control-plane   4m5s   v1.33.3
 ```
 
-若输出正常，则表示创建成功。
+若输出正常，则表示创建成功。注意 v1.33.3 是当前最新版本，角色显示为 `control-plane`（替代了旧的 `master` 术语）。
 
 ## 使用 Kind 部署 Kubernetes
 
-[Kind](https://github.com/kubernetes-sigs/kind) 是另一个 Kubernetes 集群部署工具，通过 Docker 容器 "nodes" 完成部署。
+[Kind](https://github.com/kubernetes-sigs/kind) (Kubernetes in Docker) 是另一个 Kubernetes 集群部署工具，通过 Docker 容器 "nodes" 完成部署。主要用于测试 Kubernetes 本身，也适用于本地开发或 CI。
 
-**注意**： 在这之前，你必须安装 [go](https://golang.org/) 和 [docker](https://www.docker.com/)，并且 go 的版本至少是 1.12.6。
+**系统要求**：
+- Docker、Podman 或 nerdctl
+- 可选：Go 1.17+ （如果要从源码安装）
 
 ### 安装
 
-```sh
-$ GO111MODULE="on" go get sigs.k8s.io/kind && kind create cluster
-...
-Creating cluster "kind" ...
- ✓ Ensuring node image (kindest/node:v1.15.0) 🖼
- ✓ Preparing nodes 📦
- ✓ Creating kubeadm config 📜
- ✓ Starting control-plane 🕹️
- ✓ Installing CNI 🔌
- ✓ Installing StorageClass 💾
-Cluster creation complete. You can now use the cluster with:
+**macOS**：
 
-export KUBECONFIG="$(kind get kubeconfig-path --name="kind")"
-kubectl cluster-info
+```bash
+# 使用 Homebrew（推荐）
+brew install kind
+
+# Intel Mac 手动安装
+[ $(uname -m) = x86_64 ] && curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.29.0/kind-darwin-amd64
+
+# Apple Silicon (M1/M2) Mac 手动安装
+[ $(uname -m) = arm64 ] && curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.29.0/kind-darwin-arm64
+
+# 设置可执行权限并移动到 PATH
+chmod +x ./kind
+sudo mv ./kind /usr/local/bin/kind
 ```
 
-**注意**: 请务必执行输出中的命令，以配置 kubeconfig。
+**如果已安装 Go 1.17+**：
+
+```bash
+go install sigs.k8s.io/kind@v0.29.0
+```
+
+**创建集群**：
+
+```sh
+$ kind create cluster
+Creating cluster "kind" ...
+ ✓ Ensuring node image (kindest/node:v1.33.0) 🖼
+ ✓ Preparing nodes 📦  
+ ✓ Writing configuration 📜 
+ ✓ Starting control-plane 🕹️ 
+ ✓ Installing CNI 🔌 
+ ✓ Installing StorageClass 💾 
+Set kubectl context to "kind-kind"
+You can now use your cluster with:
+
+kubectl cluster-info --context kind-kind
+```
+
+**注意**: Kind 会自动配置 kubectl 上下文，无需手动设置 KUBECONFIG。
 
 ### 验证
 
@@ -134,9 +187,11 @@ kubectl cluster-info
 
 ```sh
 $ kubectl get nodes
-NAME                 STATUS   ROLES    AGE     VERSION
-kind-control-plane   Ready    master   2m54s   v1.15.0
+NAME                 STATUS   ROLES           AGE     VERSION
+kind-control-plane   Ready    control-plane   2m54s   v1.33.0
 ```
+
+若输出正常，则表示创建成功。注意角色显示为 `control-plane`（替代了旧的 `master` 术语）。
 
 ## 其它开源安装工具
 

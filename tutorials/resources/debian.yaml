@@ -7,7 +7,9 @@ metadata:
 spec:
   containers:
     - name: debian
-      image: cargo.caicloud.io/caicloud/debian:jessie
+      image: debian:bookworm-slim
+      command: ["/bin/bash"]
+      args: ["-c", "sleep 3600"]
       resources:
         requests:
           cpu: "0.1"

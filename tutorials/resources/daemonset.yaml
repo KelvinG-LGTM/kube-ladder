@@ -1,10 +1,13 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: ds-nginx
   labels:
     name: ds-nginx
 spec:
+  selector:
+    matchLabels:
+      name: ds-nginx
   template:
     metadata:
       labels:
@@ -12,7 +15,7 @@ spec:
     spec:
       containers:
       - name: ds-nginx
-        image: cargo.caicloud.io/caicloud/nginx:1.9.3
+        image: nginx:1.27
         resources:
           requests:
             cpu: "0.1"

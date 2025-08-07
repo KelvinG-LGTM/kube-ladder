@@ -43,6 +43,12 @@
 
 **本文由 [才云科技（Caicloud）](https://caicloud.io/)  于 2019 年内部推出，现以开源的形式进行维护**
 
+**🔄 2025 年更新**: 本学习路径已针对 Kubernetes v1.33 进行全面更新，包括：
+- ✅ 更新安装指南（支持 Apple Silicon Mac）
+- ✅ 修正废弃的 API 版本（CronJob、DaemonSet 等）
+- ✅ 更新镜像引用和工具版本
+- ✅ 采用当前最佳实践和术语（如 control-plane 替代 master）
+
 目前云计算行业对于 [Kubernetes](https://kubernetes.io/) 学习的需求日益增加，但市面上关于 Kubernetes 的资源良莠不齐，存在几个问题：
 
 - 官方文档缺少明确的"梯度"，信息错综复杂

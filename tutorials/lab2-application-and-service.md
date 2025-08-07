@@ -71,11 +71,12 @@ kubectl 相关的命令，我们可以使用 `kubectl version` 检查 kubernetes
 
 ```
 $ kubectl version
-Client Version: version.Info{Major:"1", Minor:"15", GitVersion:"v1.15.0", GitCommit:"e8462b5b5dc2584fdcd18e6bcfe9f1e4d970a529", GitTreeState:"clean", BuildDate:"2019-06-20T04:52:26Z", GoVersion:"go1.12.6", Compiler:"gc", Platform:"darwin/amd64"}
-Server Version: version.Info{Major:"1", Minor:"15", GitVersion:"v1.15.0", GitCommit:"e8462b5b5dc2584fdcd18e6bcfe9f1e4d970a529", GitTreeState:"clean", BuildDate:"2019-06-19T16:32:14Z", GoVersion:"go1.12.5", Compiler:"gc", Platform:"linux/amd64"}
+Client Version: v1.33.3
+Kustomize Version: v5.5.0
+Server Version: v1.33.3
 ```
 
-从以上输出可以看出，kubectl 客户端的版本是 v1.15.0，kubernetes 集群的版本是 v1.15.0。同时，该命令还会输出 kubernetes 编译信息。
+从以上输出可以看出，kubectl 客户端的版本是 v1.33.3，kubernetes 集群的版本是 v1.33.3。新版本的 kubectl 输出更加简洁。如需详细信息，可以使用 `kubectl version --output=yaml` 获取完整的版本信息。
 
 ## kubectl cluster-info
 
@@ -83,13 +84,13 @@ Server Version: version.Info{Major:"1", Minor:"15", GitVersion:"v1.15.0", GitCom
 
 ```
 $ kubectl cluster-info
-Kubernetes master is running at https://192.168.99.100:8443
-KubeDNS is running at https://192.168.99.100:8443/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
+Kubernetes control plane is running at https://127.0.0.1:55001
+CoreDNS is running at https://127.0.0.1:55001/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
 
 To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
 ```
 
-上述信息给出了集群 API 服务的地址，如果使用 `kubectl cluster-info dump`，可以看到更多集群的信息。
+上述信息给出了集群 API 服务的地址。注意新版本中使用 "control plane" 替代了 "master" 术语，CoreDNS 替代了 KubeDNS。如果使用 `kubectl cluster-info dump`，可以看到更多集群的详细信息。
 
 ## kubectl -h
 

@@ -1,4 +1,4 @@
-apiVersion: batch/v1beta1
+apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: hello
@@ -10,7 +10,7 @@ spec:
         spec:
           containers:
           - name: hello
-            image: cargo.caicloud.io/caicloud/busybox:latest
+            image: busybox:latest
             args:
             - /bin/sh
             - -c
