@@ -187,12 +187,12 @@ kubectl 通过读取配置文件信息与 kubernetes 集群交互，默认配置
 ```
 $ cat ~/.kube/config
 apiVersion: v1
-clusters:
+clusters: ⬅️⬅️
 - cluster:
     certificate-authority: /Users/deyuandeng/.minikube/ca.crt
     server: https://192.168.99.100:8443
   name: minikube
-contexts:
+contexts: ⬅️⬅️
 - context:
     cluster: minikube
     user: minikube
@@ -200,7 +200,7 @@ contexts:
 current-context: minikube
 kind: Config
 preferences: {}
-users:
+users: ⬅️⬅️
 - name: minikube
   user:
     client-certificate: /Users/deyuandeng/.minikube/apiserver.crt
