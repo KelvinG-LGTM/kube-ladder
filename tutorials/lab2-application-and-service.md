@@ -280,8 +280,8 @@ Node 节点负责运行用户应用，承接负载。我们会在后续的章节
 
 ```
 $ kubectl get nodes
-NAME       STATUS   ROLES    AGE   VERSION
-minikube   Ready    master   27h   v1.15.0
+NAME       STATUS   ROLES           AGE   VERSION
+minikube   Ready    control-plane   28d   v1.31.0
 ```
 
 以上输出表明当前集群有 1 个节点。注意，我们无法完全从命令行区分 master 节点和 node 节点。这里 minikube
@@ -301,99 +301,144 @@ i-2ze1nwnt9tc3wg83rsru   Ready                      2d
 
 ## Node details
 
-我们可以通过 `kubectl describe nodes` 来了解节点的详情。下面显示了 minikube 节点的详情，我们可以暂时不关心输出内容的细节。
+### Node 概念与架构
+
+Node 是 Kubernetes 集群中的工作节点，是运行容器化工作负载的基本单元。每个 Node 包含以下核心组件：
+
+- **kubelet**：节点代理，负责确保容器在Pod中正常运行，与控制平面通信
+- **container runtime**：容器运行时环境（如Docker、containerd）
+- **kube-proxy**：管理节点网络代理，维护网络规则和负载均衡
+
+### Node 状态信息
+
+我们可以通过 `kubectl describe nodes` 来了解节点的详情。Node 的状态信息包括：
+
+- **地址信息**：InternalIP、ExternalIP、Hostname 等网络地址
+- **运行条件**：MemoryPressure、DiskPressure、PIDPressure、Ready 等健康状态
+- **资源容量**：CPU、内存、存储等硬件资源信息
+- **系统信息**：操作系统、内核版本、容器运行时版本等
+
+下面显示了 minikube 节点的详情：
 
 ```
 $ kubectl describe nodes minikube
 Name:               minikube
-Roles:              master
-Labels:             beta.kubernetes.io/arch=amd64
+Roles:              control-plane
+Labels:             beta.kubernetes.io/arch=arm64
                     beta.kubernetes.io/os=linux
-                    kubernetes.io/arch=amd64
+                    kubernetes.io/arch=arm64
                     kubernetes.io/hostname=minikube
                     kubernetes.io/os=linux
-                    node-role.kubernetes.io/master=
-Annotations:        kubeadm.alpha.kubernetes.io/cri-socket: /var/run/dockershim.sock
+                    minikube.k8s.io/commit=dd5d320e41b5451cdf3c01891bc4e13d189586ed
+                    minikube.k8s.io/name=minikube
+                    minikube.k8s.io/primary=true
+                    minikube.k8s.io/updated_at=2025_08_07T21_53_32_0700
+                    minikube.k8s.io/version=v1.35.0
+                    node-role.kubernetes.io/control-plane=
+                    node.kubernetes.io/exclude-from-external-load-balancers=
+Annotations:        kubeadm.alpha.kubernetes.io/cri-socket: unix:///var/run/cri-dockerd.sock
                     node.alpha.kubernetes.io/ttl: 0
                     volumes.kubernetes.io/controller-managed-attach-detach: true
-CreationTimestamp:  Thu, 27 Jun 2019 11:03:46 +0800
+CreationTimestamp:  Thu, 07 Aug 2025 21:53:29 -0400
 Taints:             <none>
 Unschedulable:      false
 Conditions:
   Type             Status  LastHeartbeatTime                 LastTransitionTime                Reason                       Message
   ----             ------  -----------------                 ------------------                ------                       -------
-  MemoryPressure   False   Fri, 28 Jun 2019 14:42:41 +0800   Thu, 27 Jun 2019 11:03:40 +0800   KubeletHasSufficientMemory   kubelet has sufficient memory available
-  DiskPressure     False   Fri, 28 Jun 2019 14:42:41 +0800   Thu, 27 Jun 2019 11:03:40 +0800   KubeletHasNoDiskPressure     kubelet has no disk pressure
-  PIDPressure      False   Fri, 28 Jun 2019 14:42:41 +0800   Thu, 27 Jun 2019 11:03:40 +0800   KubeletHasSufficientPID      kubelet has sufficient PID available
-  Ready            True    Fri, 28 Jun 2019 14:42:41 +0800   Thu, 27 Jun 2019 11:03:40 +0800   KubeletReady                 kubelet is posting ready status
+  MemoryPressure   False   Thu, 04 Sep 2025 23:08:13 -0400   Thu, 07 Aug 2025 21:53:28 -0400   KubeletHasSufficientMemory   kubelet has sufficient memory available
+  DiskPressure     False   Thu, 04 Sep 2025 23:08:13 -0400   Thu, 07 Aug 2025 21:53:28 -0400   KubeletHasNoDiskPressure     kubelet has no disk pressure
+  PIDPressure      False   Thu, 04 Sep 2025 23:08:13 -0400   Thu, 07 Aug 2025 21:53:28 -0400   KubeletHasSufficientPID      kubelet has sufficient PID available
+  Ready            True    Thu, 04 Sep 2025 23:08:13 -0400   Thu, 07 Aug 2025 21:53:30 -0400   KubeletReady                 kubelet is posting ready status
 Addresses:
-  InternalIP:  10.0.2.15
+  InternalIP:  192.168.49.2
   Hostname:    minikube
 Capacity:
- cpu:                2
- ephemeral-storage:  17784772Ki
- hugepages-2Mi:      0
- memory:             2038624Ki
- pods:               110
+  cpu:                10
+  ephemeral-storage:  1055761844Ki
+  hugepages-1Gi:      0
+  hugepages-2Mi:      0
+  hugepages-32Mi:     0
+  hugepages-64Ki:     0
+  memory:             8024976Ki
+  pods:               110
 Allocatable:
- cpu:                2
- ephemeral-storage:  16390445849
- hugepages-2Mi:      0
- memory:             1936224Ki
- pods:               110
+  cpu:                10
+  ephemeral-storage:  1055761844Ki
+  hugepages-1Gi:      0
+  hugepages-2Mi:      0
+  hugepages-32Mi:     0
+  hugepages-64Ki:     0
+  memory:             8024976Ki
+  pods:               110
 System Info:
- Machine ID:                 d4ca037d392045e1814f59e5c9b51c1d
- System UUID:                3EE4C717-994B-4FF3-8025-11D5E5E822CD
- Boot ID:                    6ca21b67-8cf1-430d-8a97-ddcc8dbc397b
- Kernel Version:             4.15.0
- OS Image:                   Buildroot 2018.05.3
- Operating System:           linux
- Architecture:               amd64
- Container Runtime Version:  docker://18.9.6
- Kubelet Version:            v1.15.0
- Kube-Proxy Version:         v1.15.0
-Non-terminated Pods:         (15 in total)
-  Namespace                  Name                                         CPU Requests  CPU Limits  Memory Requests  Memory Limits  AGE
-  ---------                  ----                                         ------------  ----------  ---------------  -------------  ---
-  default                    nginx-77cd46f788-bd5kk                       0 (0%)        0 (0%)      0 (0%)           0 (0%)         23h
-  kube-system                coredns-5c98db65d4-5cnpp                     100m (5%)     0 (0%)      70Mi (3%)        170Mi (8%)     27h
-  kube-system                coredns-5c98db65d4-brqbq                     100m (5%)     0 (0%)      70Mi (3%)        170Mi (8%)     27h
-  kube-system                default-http-backend-59f7ff8999-nnzvc        20m (1%)      20m (1%)    30Mi (1%)        30Mi (1%)      27h
-  kube-system                etcd-minikube                                0 (0%)        0 (0%)      0 (0%)           0 (0%)         27h
-  kube-system                freshpod-v6z22                               0 (0%)        0 (0%)      0 (0%)           0 (0%)         27h
-  kube-system                heapster-4d8gm                               0 (0%)        0 (0%)      0 (0%)           0 (0%)         27h
-  kube-system                influxdb-grafana-9v876                       0 (0%)        0 (0%)      0 (0%)           0 (0%)         27h
-  kube-system                kube-addon-manager-minikube                  5m (0%)       0 (0%)      50Mi (2%)        0 (0%)         27h
-  kube-system                kube-apiserver-minikube                      250m (12%)    0 (0%)      0 (0%)           0 (0%)         27h
-  kube-system                kube-controller-manager-minikube             200m (10%)    0 (0%)      0 (0%)           0 (0%)         25m
-  kube-system                kube-proxy-726vx                             0 (0%)        0 (0%)      0 (0%)           0 (0%)         27h
-  kube-system                kube-scheduler-minikube                      100m (5%)     0 (0%)      0 (0%)           0 (0%)         27h
-  kube-system                metrics-server-84bb785897-x6rz6              0 (0%)        0 (0%)      0 (0%)           0 (0%)         27h
-  kube-system                nginx-ingress-controller-7b465d9cf8-rv9k5    0 (0%)        0 (0%)      0 (0%)           0 (0%)         27h
+  Machine ID:                 e95df46f4d2d41cd8a99c8827c069e65
+  System UUID:                e95df46f4d2d41cd8a99c8827c069e65
+  Boot ID:                    efbd548a-30b7-4c16-998d-45a78e39d95e
+  Kernel Version:             6.12.5-linuxkit
+  OS Image:                   Ubuntu 22.04.5 LTS
+  Operating System:           linux
+  Architecture:               arm64
+  Container Runtime Version:  docker://27.4.1
+  Kubelet Version:            v1.31.0
+  Kube-Proxy Version:         
+Non-terminated Pods:          (7 in total)
+  Namespace                   Name                                CPU Requests  CPU Limits  Memory Requests  Memory Limits  Age
+  ---------                   ----                                ------------  ----------  ---------------  -------------  ---
+  kube-system                 coredns-6f6b679f8f-67prj            100m (1%)     0 (0%)      70Mi (0%)        170Mi (2%)     28d
+  kube-system                 etcd-minikube                       100m (1%)     0 (0%)      100Mi (1%)       0 (0%)         28d
+  kube-system                 kube-apiserver-minikube             250m (2%)     0 (0%)      0 (0%)           0 (0%)         28d
+  kube-system                 kube-controller-manager-minikube    200m (2%)     0 (0%)      0 (0%)           0 (0%)         28d
+  kube-system                 kube-proxy-f58gv                    0 (0%)        0 (0%)      0 (0%)           0 (0%)         28d
+  kube-system                 kube-scheduler-minikube             100m (1%)     0 (0%)      0 (0%)           0 (0%)         28d
+  kube-system                 storage-provisioner                 0 (0%)        0 (0%)      0 (0%)           0 (0%)         28d
 Allocated resources:
   (Total limits may be over 100 percent, i.e., overcommitted.)
-  Resource           Requests     Limits
-  --------           --------     ------
-  cpu                775m (38%)   20m (1%)
-  memory             220Mi (11%)  370Mi (19%)
-  ephemeral-storage  0 (0%)       0 (0%)
-Events:
-  Type    Reason                   Age                From                  Message
-  ----    ------                   ----               ----                  -------
-  Normal  Starting                 19h                kubelet, minikube     Starting kubelet.
-  Normal  NodeHasSufficientMemory  19h (x8 over 19h)  kubelet, minikube     Node minikube status is now: NodeHasSufficientMemory
-  Normal  NodeHasNoDiskPressure    19h (x8 over 19h)  kubelet, minikube     Node minikube status is now: NodeHasNoDiskPressure
-  Normal  NodeHasSufficientPID     19h (x7 over 19h)  kubelet, minikube     Node minikube status is now: NodeHasSufficientPID
-  Normal  NodeAllocatableEnforced  19h                kubelet, minikube     Updated Node Allocatable limit across pods
-  Normal  Starting                 19h                kube-proxy, minikube  Starting kube-proxy.
-  Normal  NodeAllocatableEnforced  26m                kubelet, minikube     Updated Node Allocatable limit across pods
-  Normal  Starting                 26m                kubelet, minikube     Starting kubelet.
-  Normal  NodeHasNoDiskPressure    26m (x8 over 26m)  kubelet, minikube     Node minikube status is now: NodeHasNoDiskPressure
-  Normal  NodeHasSufficientPID     26m (x7 over 26m)  kubelet, minikube     Node minikube status is now: NodeHasSufficientPID
-  Normal  NodeHasSufficientMemory  26m (x8 over 26m)  kubelet, minikube     Node minikube status is now: NodeHasSufficientMemory
-  Normal  Starting                 25m                kube-proxy, minikube  Starting kube-proxy.
-  Normal  NodeNotSchedulable       3m54s              kubelet, minikube     Node minikube status is now: NodeNotSchedulable
+  Resource           Requests    Limits
+  --------           --------    ------
+  cpu                750m (7%)   0 (0%)
+  memory             170Mi (2%)  170Mi (2%)
+  ephemeral-storage  0 (0%)      0 (0%)
+  hugepages-1Gi      0 (0%)      0 (0%)
+  hugepages-2Mi      0 (0%)      0 (0%)
+  hugepages-32Mi     0 (0%)      0 (0%)
+  hugepages-64Ki     0 (0%)      0 (0%)
+Events:              <none>
 ```
+
+### Node 生命周期管理
+
+Node 有两种添加到集群的方式：
+
+1. **kubelet 自注册**：kubelet 启动时自动向 API 服务器注册
+2. **手动创建**：管理员手动创建 Node 对象
+
+控制平面会验证 Node 的有效性，Node 控制器会监控节点健康状态，处理不可用的节点。
+
+### 关键运维操作
+
+```bash
+# 查看节点详细信息
+kubectl describe node <nodename>
+
+# 给节点添加标签
+kubectl label nodes <nodename> <label-key>=<label-value>
+
+# 标记节点为不可调度（维护模式）
+kubectl cordon <nodename>
+
+# 解除不可调度状态
+kubectl uncordon <nodename>
+
+# 安全驱逐节点上的 Pod（维护前）
+kubectl drain <nodename> --ignore-daemonsets
+```
+
+从上述输出可以看到：
+- **minikube** 节点既是 control-plane 也是工作节点
+- 节点状态为 **Ready**，所有条件都正常
+- **资源容量**：10 CPU 核心，8GB 内存，1TB 存储
+- **系统运行时**：Ubuntu 22.04.5 LTS，Docker 27.4.1
+- 当前运行 **7 个系统 Pod**，总资源使用率较低
 
 ## Readings
 
@@ -419,11 +464,11 @@ namespace "tutorial" created
 ```
 $ kubectl get ns
 NAME              STATUS   AGE
-default           Active   27h
-kube-node-lease   Active   27h
-kube-public       Active   27h
-kube-system       Active   27h
-tutorial          Active   7s
+default           Active   28d
+kube-node-lease   Active   28d
+kube-public       Active   28d
+kube-system       Active   28d
+tutorial          Active   5s
 ```
 
 这里 `ns` 是 `namespace` 的缩写。输出内容中的 `default`, `kube-node-lease`, `kube-public` 和 `kube-system`，都是 kubernetes
@@ -432,13 +477,13 @@ tutorial          Active   7s
 ```sh
 $ kubectl describe ns tutorial
 Name:         tutorial
-Labels:       <none>
+Labels:       kubernetes.io/metadata.name=tutorial
 Annotations:  <none>
 Status:       Active
 
 No resource quota.
 
-No resource limits.
+No LimitRange resource.
 ```
 
 ## Readings
@@ -476,8 +521,8 @@ deployment.apps/nginx-deployment created
 
 ```
 $ kubectl get deployment -n tutorial
-NAME    READY   UP-TO-DATE   AVAILABLE   AGE
-nginx   1/1     1            1           67s
+NAME                   READY   UP-TO-DATE   AVAILABLE   AGE
+nginx-kel-deployment   3/3     3            3           16s
 ```
 
 从输出可以看出，我们请求创建一个 Pod (replica)，kubernetes 已经帮我们成功创建了一个。
@@ -489,17 +534,21 @@ nginx   1/1     1            1           67s
 
 ```
 $ kubectl get pods -n tutorial
-NAME                     READY   STATUS    RESTARTS   AGE
-nginx-646b46d648-hbwg2   1/1     Running   0          101s
+NAME                                    READY   STATUS    RESTARTS   AGE
+nginx-kel-deployment-7776f48665-gslmr   1/1     Running   0          16s
+nginx-kel-deployment-7776f48665-ntbpw   1/1     Running   0          16s
+nginx-kel-deployment-7776f48665-z988k   1/1     Running   0          16s
 ```
 
-可以看到，现在有一个 Pod 在运行中；我们可以通过 `kubectl get pods -o wide` 来查看 Pod 运行的主机，或者通过 `kubectl describe pods nginx-77cd46f788-bd5kk` 来查看 Pod 更加详细的信息（describe
+可以看到，现在有3个 Pod 在运行中；我们可以通过 `kubectl get pods -o wide` 来查看 Pod 运行的主机，或者通过 `kubectl describe pods nginx-kel-deployment-7776f48665-gslmr` 来查看 Pod 更加详细的信息（describe
 中包含非常多的信息，我们将在后面介绍）。
 
 ```
 $ kubectl get pods -n tutorial -o wide
-NAME                     READY   STATUS    RESTARTS   AGE     IP            NODE       NOMINATED NODE   READINESS GATES
-nginx-646b46d648-hbwg2   1/1     Running   0          2m23s   172.17.0.11   minikube   <none>           <none>
+NAME                                    READY   STATUS    RESTARTS   AGE   IP           NODE       NOMINATED NODE   READINESS GATES
+nginx-kel-deployment-7776f48665-gslmr   1/1     Running   0          16s   10.244.0.4   minikube   <none>           <none>
+nginx-kel-deployment-7776f48665-ntbpw   1/1     Running   0          16s   10.244.0.6   minikube   <none>           <none>
+nginx-kel-deployment-7776f48665-z988k   1/1     Running   0          16s   10.244.0.5   minikube   <none>           <none>
 ```
 
 ## Get Pod Logs
@@ -507,33 +556,72 @@ nginx-646b46d648-hbwg2   1/1     Running   0          2m23s   172.17.0.11   mini
 当我们部署要应用之后，可以通过 `kubectl logs <pod name>` 和 `kubectl exec <pod name>` 与 Pod 交互。
 
 ```
-$ kubectl logs nginx-646b46d648-hbwg2 -n tutorial
+$ kubectl logs nginx-kel-deployment-7776f48665-gslmr -n tutorial
+/docker-entrypoint.sh: /docker-entrypoint.d/ is not empty, will attempt to perform configuration
+/docker-entrypoint.sh: Looking for shell scripts in /docker-entrypoint.d/
+/docker-entrypoint.sh: Launching /docker-entrypoint.d/10-listen-on-ipv6-by-default.sh
+10-listen-on-ipv6-by-default.sh: info: Getting the checksum of /etc/nginx/conf.d/default.conf
+10-listen-on-ipv6-by-default.sh: info: Enabled listen on IPv6 in /etc/nginx/conf.d/default.conf
+/docker-entrypoint.sh: Sourcing /docker-entrypoint.d/15-local-resolvers.envsh
+/docker-entrypoint.sh: Launching /docker-entrypoint.d/20-envsubst-on-templates.sh
+/docker-entrypoint.sh: Launching /docker-entrypoint.d/30-tune-worker-processes.sh
+/docker-entrypoint.sh: Configuration complete; ready for start up
+2025/09/05 03:16:00 [notice] 1#1: using the "epoll" event method
+2025/09/05 03:16:00 [notice] 1#1: nginx/1.29.1
+2025/09/05 03:16:00 [notice] 1#1: built by gcc 12.2.0 (Debian 12.2.0-14+deb12u1) 
+2025/09/05 03:16:00 [notice] 1#1: OS: Linux 6.12.5-linuxkit
+2025/09/05 03:16:00 [notice] 1#1: getrlimit(RLIMIT_NOFILE): 1048576:1048576
+2025/09/05 03:16:00 [notice] 1#1: start worker processes
+2025/09/05 03:16:00 [notice] 1#1: start worker process 29
+2025/09/05 03:16:00 [notice] 1#1: start worker process 30
+2025/09/05 03:16:00 [notice] 1#1: start worker process 31
+2025/09/05 03:16:00 [notice] 1#1: start worker process 32
+2025/09/05 03:16:00 [notice] 1#1: start worker process 33
+2025/09/05 03:16:00 [notice] 1#1: start worker process 34
+2025/09/05 03:16:00 [notice] 1#1: start worker process 35
+2025/09/05 03:16:00 [notice] 1#1: start worker process 36
+2025/09/05 03:16:00 [notice] 1#1: start worker process 37
+2025/09/05 03:16:00 [notice] 1#1: start worker process 38
 ```
 
-由于没有任何请求，nginx pod 日志暂时为空。现在我们尝试访问 nginx pod。由于 `minikube` 本身是运行在虚拟机中，因此我们需要登录虚拟机访问 nginx pod (nginx pod ip: 172.17.0.11)。
+可以看到nginx pod的启动日志。现在我们尝试访问 nginx pod。由于 `minikube` 本身是运行在虚拟机中，因此我们需要登录虚拟机访问 nginx pod (nginx pod ip: 10.244.0.4)。
 
 ```
-$ minikube ssh
-                         _             _
-            _         _ ( )           ( )
-  ___ ___  (_)  ___  (_)| |/')  _   _ | |_      __
-/' _ ` _ `\| |/' _ `\| || , <  ( ) ( )| '_`\  /'__`\
-| ( ) ( ) || || ( ) || || |\`\ | (_) || |_) )(  ___/
-(_) (_) (_)(_)(_) (_)(_)(_) (_)`\___/'(_,__/'`\____)
-
-# in minikube vm
-$ curl 172.17.0.11
+$ minikube ssh -- curl 10.244.0.4
 <!DOCTYPE html>
 <html>
-...
+<head>
+<title>Welcome to nginx!</title>
+<style>
+html { color-scheme: light dark; }
+body { width: 35em; margin: 0 auto;
+font-family: Tahoma, Verdana, Arial, sans-serif; }
+</style>
+</head>
+<body>
+<h1>Welcome to nginx!</h1>
+<p>If you see this page, the nginx web server is successfully installed and
+working. Further configuration is required.</p>
+
+<p>For online documentation and support please refer to
+<a href="http://nginx.org/">nginx.org</a>.<br/>
+Commercial support is available at
+<a href="http://nginx.com/">nginx.com</a>.</p>
+
+<p><em>Thank you for using nginx.</em></p>
+</body>
 </html>
 ```
 
 此时再查看 nginx，可以看到 nginx 的访问日志。
 
 ```
-$ kubectl logs nginx-3035859230-d2sfd -n tutorial
-172.17.0.1 - - [28/Jun/2019:07:03:09 +0000] "GET / HTTP/1.1" 200 612 "-" "curl/7.61.1" "-"
+$ kubectl logs nginx-kel-deployment-7776f48665-gslmr -n tutorial
+/docker-entrypoint.sh: /docker-entrypoint.d/ is not empty, will attempt to perform configuration
+/docker-entrypoint.sh: Looking for shell scripts in /docker-entrypoint.d/
+...
+2025/09/05 03:16:00 [notice] 1#1: start worker process 38
+10.244.0.1 - - [05/Sep/2025:03:19:22 +0000] "GET / HTTP/1.1" 200 615 "-" "curl/7.81.0" "-"
 ```
 
 ## Execute command in Pod
@@ -541,54 +629,56 @@ $ kubectl logs nginx-3035859230-d2sfd -n tutorial
 有时候，我们需要在 Pod 中执行命令，可以通过 `kubectl exec`：
 
 ```
-$ kubectl exec nginx-646b46d648-hbwg2 -n tutorial -- ls -l
+$ kubectl exec nginx-kel-deployment-7776f48665-gslmr -n tutorial -- ls -l
 total 64
-drwxr-xr-x   2 root root 4096 Dec  4  2015 bin
-drwxr-xr-x   2 root root 4096 Aug 26  2015 boot
-drwxr-xr-x   5 root root  360 Jun 28 06:57 dev
-drwxr-xr-x   1 root root 4096 Jun 28 06:57 etc
-drwxr-xr-x   2 root root 4096 Aug 26  2015 home
-drwxr-xr-x   9 root root 4096 Nov 27  2014 lib
-drwxr-xr-x   2 root root 4096 Dec  4  2015 lib64
-drwxr-xr-x   2 root root 4096 Dec  4  2015 media
-drwxr-xr-x   2 root root 4096 Dec  4  2015 mnt
-drwxr-xr-x   2 root root 4096 Dec  4  2015 opt
-dr-xr-xr-x 226 root root    0 Jun 28 06:57 proc
-drwx------   2 root root 4096 Dec  4  2015 root
-drwxr-xr-x   1 root root 4096 Jun 28 06:57 run
-drwxr-xr-x   2 root root 4096 Dec  4  2015 sbin
-drwxr-xr-x   2 root root 4096 Dec  4  2015 srv
-dr-xr-xr-x  12 root root    0 Jun 28 06:56 sys
-drwxrwxrwt   1 root root 4096 Dec  5  2015 tmp
-drwxr-xr-x   1 root root 4096 Dec  5  2015 usr
-drwxr-xr-x   1 root root 4096 Dec  5  2015 var
+lrwxrwxrwx   1 root root    7 Aug 11 00:00 bin -> usr/bin
+drwxr-xr-x   2 root root 4096 May  9 14:50 boot
+drwxr-xr-x   5 root root  360 Sep  5 03:16 dev
+drwxr-xr-x   1 root root 4096 Aug 13 20:41 docker-entrypoint.d
+-rwxr-xr-x   1 root root 1620 Aug 13 20:41 docker-entrypoint.sh
+drwxr-xr-x   1 root root 4096 Sep  5 03:16 etc
+drwxr-xr-x   2 root root 4096 May  9 14:50 home
+lrwxrwxrwx   1 root root    7 Aug 11 00:00 lib -> usr/lib
+drwxr-xr-x   2 root root 4096 Aug 11 00:00 media
+drwxr-xr-x   2 root root 4096 Aug 11 00:00 mnt
+drwxr-xr-x   2 root root 4096 Aug 11 00:00 opt
+dr-xr-xr-x 312 root root    0 Sep  5 03:16 proc
+drwx------   2 root root 4096 Aug 11 00:00 root
+drwxr-xr-x   1 root root 4096 Sep  5 03:16 run
+lrwxrwxrwx   1 root root    8 Aug 11 00:00 sbin -> usr/sbin
+drwxr-xr-x   2 root root 4096 Aug 11 00:00 srv
+dr-xr-xr-x  11 root root    0 Sep  5 03:15 sys
+drwxrwxrwt   2 root root 4096 Aug 11 00:00 tmp
+drwxr-xr-x   1 root root 4096 Aug 11 00:00 usr
+drwxr-xr-x   1 root root 4096 Aug 11 00:00 var
 ```
 
 注意，我们通过双横线（“--”）区分本地终端命令和容器中执行的命令；当执行的命令只有一个单词的时候，可以省略。如果容器中有 `shell`，我们也可以启动一个远程终端：
 
 ```
-$ kubectl exec -it nginx-646b46d648-hbwg2 -n tutorial bash
-root@nginx-646b46d648-hbwg2:/# ls -l
+$ kubectl exec -it nginx-kel-deployment-7776f48665-gslmr -n tutorial bash
+root@nginx-kel-deployment-7776f48665-gslmr:/# ls -l
 total 64
-drwxr-xr-x   2 root root 4096 Dec  4  2015 bin
-drwxr-xr-x   2 root root 4096 Aug 26  2015 boot
-drwxr-xr-x   5 root root  360 Jun 28 06:57 dev
-drwxr-xr-x   1 root root 4096 Jun 28 06:57 etc
-drwxr-xr-x   2 root root 4096 Aug 26  2015 home
-drwxr-xr-x   9 root root 4096 Nov 27  2014 lib
-drwxr-xr-x   2 root root 4096 Dec  4  2015 lib64
-drwxr-xr-x   2 root root 4096 Dec  4  2015 media
-drwxr-xr-x   2 root root 4096 Dec  4  2015 mnt
-drwxr-xr-x   2 root root 4096 Dec  4  2015 opt
-dr-xr-xr-x 226 root root    0 Jun 28 06:57 proc
-drwx------   2 root root 4096 Dec  4  2015 root
-drwxr-xr-x   1 root root 4096 Jun 28 06:57 run
-drwxr-xr-x   2 root root 4096 Dec  4  2015 sbin
-drwxr-xr-x   2 root root 4096 Dec  4  2015 srv
-dr-xr-xr-x  12 root root    0 Jun 28 06:56 sys
-drwxrwxrwt   1 root root 4096 Dec  5  2015 tmp
-drwxr-xr-x   1 root root 4096 Dec  5  2015 usr
-drwxr-xr-x   1 root root 4096 Dec  5  2015 var
+lrwxrwxrwx   1 root root    7 Aug 11 00:00 bin -> usr/bin
+drwxr-xr-x   2 root root 4096 May  9 14:50 boot
+drwxr-xr-x   5 root root  360 Sep  5 03:16 dev
+drwxr-xr-x   1 root root 4096 Aug 13 20:41 docker-entrypoint.d
+-rwxr-xr-x   1 root root 1620 Aug 13 20:41 docker-entrypoint.sh
+drwxr-xr-x   1 root root 4096 Sep  5 03:16 etc
+drwxr-xr-x   2 root root 4096 May  9 14:50 home
+lrwxrwxrwx   1 root root    7 Aug 11 00:00 lib -> usr/lib
+drwxr-xr-x   2 root root 4096 Aug 11 00:00 media
+drwxr-xr-x   2 root root 4096 Aug 11 00:00 mnt
+drwxr-xr-x   2 root root 4096 Aug 11 00:00 opt
+dr-xr-xr-x 312 root root    0 Sep  5 03:16 proc
+drwx------   2 root root 4096 Aug 11 00:00 root
+drwxr-xr-x   1 root root 4096 Sep  5 03:16 run
+lrwxrwxrwx   1 root root    8 Aug 11 00:00 sbin -> usr/sbin
+drwxr-xr-x   2 root root 4096 Aug 11 00:00 srv
+dr-xr-xr-x  11 root root    0 Sep  5 03:15 sys
+drwxrwxrwt   2 root root 4096 Aug 11 00:00 tmp
+drwxr-xr-x   1 root root 4096 Aug 11 00:00 usr
+drwxr-xr-x   1 root root 4096 Aug 11 00:00 var
 ```
 
 使用 `ctrl + d` 可以退出远程终端。
@@ -621,8 +711,8 @@ Service A 和 Service B 都有自己独立的 IP。无论他们所管理的容�
 提供了快捷命令让我们能快速创建 Service。
 
 ```
-$ kubectl expose deployment nginx --port 80 -n tutorial
-service "nginx" exposed
+$ kubectl expose deployment nginx-kel-deployment --port 80 -n tutorial
+service/nginx-kel-deployment exposed
 ```
 
 ## Get service
@@ -630,35 +720,41 @@ service "nginx" exposed
 通过 `kubectl get service` 命令可以查看 service 的详细信息：
 
 ```
-$ kubectl get svc nginx -n tutorial
-NAME    TYPE        CLUSTER-IP    EXTERNAL-IP   PORT(S)   AGE
-nginx   ClusterIP   10.96.6.136   <none>        80/TCP    15s
+$ kubectl get svc nginx-kel-deployment -n tutorial
+NAME                   TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)   AGE
+nginx-kel-deployment   ClusterIP   10.100.80.203   <none>        80/TCP    0s
 ```
 
-可以看到，Service 具有一个固定的 IP 10.96.6.136。同样，通过 describe 可以看到更多详细的信息：
+可以看到，Service 具有一个固定的 IP 10.100.80.203。同样，通过 describe 可以看到更多详细的信息：
 
 ```
-$ kubectl describe svc nginx -n tutorial
-Name:              nginx
-Namespace:         tutorial
-Labels:            run=nginx
-Annotations:       <none>
-Selector:          run=nginx
-Type:              ClusterIP
-IP:                10.96.6.136
-Port:              <unset>  80/TCP
-TargetPort:        80/TCP
-Endpoints:         172.17.0.11:80
-Session Affinity:  None
-Events:            <none>
+$ kubectl describe svc nginx-kel-deployment -n tutorial
+Name:                     nginx-kel-deployment
+Namespace:                tutorial
+Labels:                   app=nginx
+Annotations:              <none>
+Selector:                 app=nginx
+Type:                     ClusterIP
+IP Family Policy:         SingleStack
+IP Families:              IPv4
+IP:                       10.100.80.203
+IPs:                      10.100.80.203
+Port:                     <unset>  80/TCP
+TargetPort:               80/TCP
+Endpoints:                10.244.0.5:80,10.244.0.6:80,10.244.0.4:80
+Session Affinity:         None
+Internal Traffic Policy:  Cluster
+Events:                   <none>
 ```
 
 其中，Endpoint 表明 Service 所选中的 PodIP:PodPort。我们可以查看 Pod 信息来验证：
 
 ```
 $ kubectl get pods -o wide -n tutorial
-NAME                     READY   STATUS    RESTARTS   AGE   IP            NODE       NOMINATED NODE   READINESS GATES
-nginx-646b46d648-hbwg2   1/1     Running   0          14m   172.17.0.11   minikube   <none>           <none>
+NAME                                    READY   STATUS    RESTARTS   AGE   IP           NODE       NOMINATED NODE   READINESS GATES
+nginx-kel-deployment-7776f48665-gslmr   1/1     Running   0          10m   10.244.0.4   minikube   <none>           <none>
+nginx-kel-deployment-7776f48665-ntbpw   1/1     Running   0          10m   10.244.0.6   minikube   <none>           <none>
+nginx-kel-deployment-7776f48665-z988k   1/1     Running   0          10m   10.244.0.5   minikube   <none>           <none>
 ```
 
 ## Query service
@@ -668,21 +764,40 @@ nginx-646b46d648-hbwg2   1/1     Running   0          14m   172.17.0.11   miniku
 通过 Service IP 访问：
 
 ```
-$ minikube ssh
-$ curl 10.96.6.136
+$ minikube ssh -- curl 10.100.80.203
 <!DOCTYPE html>
 <html>
-...
+<head>
+<title>Welcome to nginx!</title>
+<style>
+html { color-scheme: light dark; }
+body { width: 35em; margin: 0 auto;
+font-family: Tahoma, Verdana, Arial, sans-serif; }
+</style>
+</head>
+<body>
+<h1>Welcome to nginx!</h1>
+<p>If you see this page, the nginx web server is successfully installed and
+working. Further configuration is required.</p>
+
+<p>For online documentation and support please refer to
+<a href="http://nginx.org/">nginx.org</a>.<br/>
+Commercial support is available at
+<a href="http://nginx.com/">nginx.com</a>.</p>
+
+<p><em>Thank you for using nginx.</em></p>
+</body>
 </html>
 ```
 
 通过 Pod IP 访问：
 
 ```
-$ minikube ssh
-$ curl 172.17.0.11
+$ minikube ssh -- curl 10.244.0.4
 <!DOCTYPE html>
 <html>
+<head>
+<title>Welcome to nginx!</title>
 ...
 </html>
 ```
@@ -692,29 +807,47 @@ $ curl 172.17.0.11
 首先，删除已经创建的 Service：
 
 ```
-$ kubectl delete svc nginx -n tutorial
-service "nginx" deleted
+$ kubectl delete svc nginx-kel-deployment -n tutorial
+service "nginx-kel-deployment" deleted
 ```
 
 之后，创建 Service：
 
 ```
-$ kubectl expose deployment nginx --port 8080 --target-port 80 -n tutorial
-service "nginx" exposed
+$ kubectl expose deployment nginx-kel-deployment --port 8080 --target-port 80 -n tutorial
+service/nginx-kel-deployment exposed
 ```
 
 尝试用 8080 端口访问服务
 
 ```
-$ kubectl get svc nginx -n tutorial
-NAME    TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)    AGE
-nginx   ClusterIP   10.98.125.20   <none>        8080/TCP   6s
+$ kubectl get svc nginx-kel-deployment -n tutorial
+NAME                   TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)    AGE
+nginx-kel-deployment   ClusterIP   10.110.67.128   <none>        8080/TCP   0s
 
-$ minikube ssh
-$ curl 10.98.125.20:8080
+$ minikube ssh -- curl 10.110.67.128:8080
 <!DOCTYPE html>
 <html>
-...
+<head>
+<title>Welcome to nginx!</title>
+<style>
+html { color-scheme: light dark; }
+body { width: 35em; margin: 0 auto;
+font-family: Tahoma, Verdana, Arial, sans-serif; }
+</style>
+</head>
+<body>
+<h1>Welcome to nginx!</h1>
+<p>If you see this page, the nginx web server is successfully installed and
+working. Further configuration is required.</p>
+
+<p>For online documentation and support please refer to
+<a href="http://nginx.org/">nginx.org</a>.<br/>
+Commercial support is available at
+<a href="http://nginx.com/">nginx.com</a>.</p>
+
+<p><em>Thank you for using nginx.</em></p>
+</body>
 </html>
 ```
 
@@ -725,49 +858,58 @@ $ curl 10.98.125.20:8080
 首先，删除已有的 Service：
 
 ```
-$ kubectl delete svc nginx -n tutorial
-service "nginx" deleted
+$ kubectl delete svc nginx-kel-deployment -n tutorial
+service "nginx-kel-deployment" deleted
 ```
 
 通过 NodePort 暴露服务，注意这里使用了 `--type NodePort`：
 
 ```
-$ kubectl expose deployment nginx --port 80 --type NodePort -n tutorial
-service "nginx" exposed
+$ kubectl expose deployment nginx-kel-deployment --port 80 --type NodePort -n tutorial
+service/nginx-kel-deployment exposed
 ```
 
 查看 Service 的细节：
 
 ```
-$ kubectl get svc nginx -n tutorial
-NAME    TYPE       CLUSTER-IP     EXTERNAL-IP   PORT(S)        AGE
-nginx   NodePort   10.107.97.57   <none>        80:32542/TCP   5s
+$ kubectl get svc nginx-kel-deployment -n tutorial
+NAME                   TYPE       CLUSTER-IP     EXTERNAL-IP   PORT(S)        AGE
+nginx-kel-deployment   NodePort   10.98.30.162   <none>        80:30676/TCP   0s
 ```
 
 ```
-$ kubectl describe svc nginx -n tutorial
-Name:                     nginx
+$ kubectl describe svc nginx-kel-deployment -n tutorial
+Name:                     nginx-kel-deployment
 Namespace:                tutorial
-Labels:                   run=nginx
+Labels:                   app=nginx
 Annotations:              <none>
-Selector:                 run=nginx
+Selector:                 app=nginx
 Type:                     NodePort
-IP:                       10.107.97.57
+IP Family Policy:         SingleStack
+IP Families:              IPv4
+IP:                       10.98.30.162
+IPs:                      10.98.30.162
 Port:                     <unset>  80/TCP
 TargetPort:               80/TCP
-NodePort:                 <unset>  32542/TCP
-Endpoints:                172.17.0.11:80
+NodePort:                 <unset>  30676/TCP
+Endpoints:                10.244.0.5:80,10.244.0.4:80,10.244.0.6:80
 Session Affinity:         None
 External Traffic Policy:  Cluster
+Internal Traffic Policy:  Cluster
 Events:                   <none>
 ```
 
-从以上输出可以看到，nginx 服务打开了节点的 32542 端口（每个节点），我们可以通过 `NodeIP:NodePort` 访问服务。
+从以上输出可以看到，nginx 服务打开了节点的 30676 端口（每个节点），我们可以通过 `NodeIP:NodePort` 访问服务。在Docker环境运行的minikube中，使用以下方式访问：
 
 ```
-$ curl $(minikube ip):32542
+$ minikube service nginx-kel-deployment -n tutorial --url
+http://127.0.0.1:54401
+
+$ curl http://127.0.0.1:54401
 <!DOCTYPE html>
 <html>
+<head>
+<title>Welcome to nginx!</title>
 ...
 </html>
 ```
@@ -801,40 +943,45 @@ Label 可以在创建时添加，也可以在运行时添加或修改。在运�
 
 ## View selector & label
 
-从下面的输出可以看到，上述创建的 Deployment 和 Service 的 Selector 都是 `run=nginx`。Pod 具有 Label
-`pod-template-hash=646b46d648,run=nginx`，因此他们都选中了 `nginx-646b46d648-hbwg2` 这个 Pod （只要
-Pod label 的子集满足即可；这里的 `pod-template-hash=646b46d648` Label 是 kubernetes 自动创建）。
+从下面的输出可以看到，上述创建的 Deployment 和 Service 的 Selector 都是 `app=nginx`。Pod 具有 Label
+`app=nginx,lalala=lololo,pod-template-hash=7776f48665`，因此他们都选中了所有3个 nginx Pod （只要
+Pod label 的子集满足即可；这里的 `pod-template-hash=7776f48665` Label 是 kubernetes 自动创建）。
 
 ```
-$ kubectl describe deployment nginx -n tutorial
-Name:                   nginx
+$ kubectl describe deployment nginx-kel-deployment -n tutorial
+Name:                   nginx-kel-deployment
 Namespace:              tutorial
-CreationTimestamp:      Fri, 28 Jun 2019 14:56:58 +0800
-Labels:                 run=nginx
+CreationTimestamp:      Thu, 04 Sep 2025 23:15:55 -0400
+Labels:                 app=nginx
 Annotations:            deployment.kubernetes.io/revision: 1
-Selector:               run=nginx
+Selector:               app=nginx
+Replicas:               3 desired | 3 updated | 3 total | 3 available | 0 unavailable
+Pod Template:
+  Labels:  app=nginx
+           lalala=lololo
 ...
 ```
 
 ```
-$ kubectl describe svc nginx -n tutorial
-Name:                   nginx
-Namespace:              tutorial
-Labels:                 run=nginx
-Annotations:            <none>
-Selector:               run=nginx
+$ kubectl describe svc nginx-kel-deployment -n tutorial
+Name:                     nginx-kel-deployment
+Namespace:                tutorial
+Labels:                   app=nginx
+Annotations:              <none>
+Selector:                 app=nginx
 ...
 ```
 
 ```
-$ kubectl describe pods nginx-646b46d648-hbwg2 -n tutorial
-Name:           nginx-646b46d648-hbwg2
-Namespace:      tutorial
-Priority:       0
-Node:           minikube/10.0.2.15
-Start Time:     Fri, 28 Jun 2019 14:56:59 +0800
-Labels:         pod-template-hash=646b46d648
-                run=nginx
+$ kubectl describe pods nginx-kel-deployment-7776f48665-gslmr -n tutorial
+Name:         nginx-kel-deployment-7776f48665-gslmr
+Namespace:    tutorial
+Priority:     0
+Node:         minikube/192.168.49.2
+Start Time:   Thu, 04 Sep 2025 23:15:55 -0400
+Labels:       app=nginx
+              lalala=lololo
+              pod-template-hash=7776f48665
 ```
 
 ## Label operations
@@ -842,22 +989,24 @@ Labels:         pod-template-hash=646b46d648
 kubectl 支持对资源的 label 进行管理，比如我们可以通过 -l 选项查看仅具有某个 label 的资源。
 
 ```
-$ kubectl get pods -l run=nginx -n tutorial
-NAME                     READY   STATUS    RESTARTS   AGE
-nginx-646b46d648-hbwg2   1/1     Running   0          26m
+$ kubectl get pods -l app=nginx -n tutorial
+NAME                                    READY   STATUS    RESTARTS   AGE
+nginx-kel-deployment-7776f48665-gslmr   1/1     Running   0          23m
+nginx-kel-deployment-7776f48665-ntbpw   1/1     Running   0          23m
+nginx-kel-deployment-7776f48665-z988k   1/1     Running   0          23m
 ```
 
 ```
-$ kubectl get svc -l run=nginx -n tutorial
-NAME    TYPE       CLUSTER-IP     EXTERNAL-IP   PORT(S)        AGE
-nginx   NodePort   10.107.97.57   <none>        80:32542/TCP   7m38s
+$ kubectl get svc -l app=nginx -n tutorial
+NAME                   TYPE       CLUSTER-IP     EXTERNAL-IP   PORT(S)        AGE
+nginx-kel-deployment   NodePort   10.98.30.162   <none>        80:30676/TCP   10m
 ```
 
 当没有任何资源满足 label 时，输出为空：
 
 ```
-$ kubectl get svc -l run=apache -n tutorial
-No resources found.
+$ kubectl get svc -l app=apache -n tutorial
+No resources found in tutorial namespace.
 ```
 
 kubectl 支持对资源的 label 进行操作，如下所示：
